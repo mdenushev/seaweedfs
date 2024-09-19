@@ -120,8 +120,14 @@ func (c *commandVolumeFixReplication) Do(args []string, commandEnv *CommandEnv, 
 			}
 		}
 
-		if len(misplacedVolumeIds) > 0 && *doDelete {
-			if err := c.deleteOneVolume(commandEnv, writer, takeAction, *doCheck, misplacedVolumeIds, volumeReplicas, allLocations, pickOneMisplacedVolume); err != nil {
+		if len(misplacedVolumeIds) > 0 {
+			// find the most under populated data nodes
+			fixedVolumeReplicas, err = c.fixUnderReplicatedVolumes(commandEnv, writer, takeAction, misplacedVolumeIds, volumeReplicas, allLocations, *retryCount, *volumesPerStep)
+			if err != nil {
+				return err
+
+			}
+			if err := c.deleteOneVolume(commandEnv, writer, takeAction && *doDelete, *doCheck, misplacedVolumeIds, volumeReplicas, allLocations, pickOneMisplacedVolume); err != nil {
 				return err
 			}
 		}
@@ -129,9 +135,12 @@ func (c *commandVolumeFixReplication) Do(args []string, commandEnv *CommandEnv, 
 		underReplicatedVolumeIdsCount = len(underReplicatedVolumeIds)
 		if underReplicatedVolumeIdsCount > 0 {
 			// find the most under populated data nodes
-			fixedVolumeReplicas, err = c.fixUnderReplicatedVolumes(commandEnv, writer, takeAction, underReplicatedVolumeIds, volumeReplicas, allLocations, *retryCount, *volumesPerStep)
+			underReplicatedFixedVolumeReplicas, err := c.fixUnderReplicatedVolumes(commandEnv, writer, takeAction, underReplicatedVolumeIds, volumeReplicas, allLocations, *retryCount, *volumesPerStep)
 			if err != nil {
 				return err
+			}
+			for k, v := range underReplicatedFixedVolumeReplicas {
+				fixedVolumeReplicas[k] = v
 			}
 		}
 
