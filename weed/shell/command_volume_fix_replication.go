@@ -121,11 +121,10 @@ func (c *commandVolumeFixReplication) Do(args []string, commandEnv *CommandEnv, 
 		}
 
 		if len(misplacedVolumeIds) > 0 {
-			// find the most under populated data nodes
+			// find the most underpopulated data nodes
 			fixedVolumeReplicas, err = c.fixUnderReplicatedVolumes(commandEnv, writer, takeAction, misplacedVolumeIds, volumeReplicas, allLocations, *retryCount, *volumesPerStep)
 			if err != nil {
 				return err
-
 			}
 			if err := c.deleteOneVolume(commandEnv, writer, takeAction && *doDelete, *doCheck, misplacedVolumeIds, volumeReplicas, allLocations, pickOneMisplacedVolume); err != nil {
 				return err
