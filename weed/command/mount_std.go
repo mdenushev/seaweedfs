@@ -49,7 +49,9 @@ func runMount(cmd *Command, args []string) bool {
 		return false
 	}
 
-	if len(args) > 0 {
+	if len(args) == 1 {
+		mountOptions.dir = &args[0]
+	} else if len(args) > 1 {
 		return false
 	}
 
